@@ -13,6 +13,7 @@ This tool is designed to support the investigation of Unified Audit Logs. The to
 
 ## Preview
 
+![PUAL_GUI](https://github.com/DFIRinProgress/Parse-Unified-Audit-Logs-PUAL/assets/152358501/90c6971a-7461-43ff-8397-d16bf3a6ddc7)
 
 ## Installation
 
