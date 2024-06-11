@@ -1,5 +1,12 @@
 {
     "ipinfo": {
       "token": "YOUR_TOKEN_HERE"
-    }
+    }    ,
+    "suspicious_operations": [
+      "New-InboxRule",
+      "UpdateInboxRules",
+      "Set-InboxRule",
+      "AnonymousLinkCreated",
+      "Consent to application."
+  ]
   }

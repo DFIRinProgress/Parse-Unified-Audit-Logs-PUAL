@@ -1,4 +1,5 @@
 import os
+import json
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
@@ -32,8 +33,18 @@ class AuditLogParserApp:
         self.enriched_ip_info = {}
         self.current_visualization_index = 0
         self.visualizations = []
+        self.suspicious_operations = self.load_suspicious_operations()
 
         self.create_widgets()
+    
+    def load_suspicious_operations(self):
+        try:
+            with open('config.json', 'r') as file:
+                config = json.load(file)
+            return config.get("suspicious_operations", [])
+        except (FileNotFoundError, KeyError, json.JSONDecodeError) as e:
+            messagebox.showerror("Error", f"Failed to load suspicious operations from config.json: {e}")
+            return []
 
     def create_widgets(self):
         # Main frame
@@ -78,14 +89,17 @@ class AuditLogParserApp:
         self.filter_op_combobox.grid(row=0, column=1, padx=5, sticky="ew")
         self.filter_op_combobox.bind("<<ComboboxSelected>>", self.filter_by_operation)
 
+        self.suspicious_op_btn = ttk.Button(search_frame, text="Suspicious Operations", command=self.filter_suspicious_operations, bootstyle="warning")
+        self.suspicious_op_btn.grid(row=0, column=2, padx=5, sticky="w")
+
         self.search_label = ttk.Label(search_frame, text="Search:")
-        self.search_label.grid(row=1, column=0, padx=5, sticky="w")
+        self.search_label.grid(row=1, column=0, padx=5, pady=(10, 0), sticky="w")
 
         self.search_entry = ttk.Entry(search_frame)
-        self.search_entry.grid(row=1, column=1, padx=5, sticky="ew")
+        self.search_entry.grid(row=1, column=1, padx=5, pady=(10, 0), sticky="w")
 
         self.search_btn = ttk.Button(search_frame, text="Search", command=self.search_data, bootstyle="primary")
-        self.search_btn.grid(row=1, column=2, padx=5)
+        self.search_btn.grid(row=1, column=2, padx=5, pady=(10, 0), sticky="w")
 
         # IP address filter frame
         filter_frame = ttk.Labelframe(main_frame, text="IP Address Filter", padding=(10, 10), bootstyle="info")
@@ -149,6 +163,7 @@ class AuditLogParserApp:
 
         self.enrich_ip_btn = ttk.Button(action_frame, text="Enrich IP Information", command=self.enrich_ip_info, bootstyle="primary")
         self.enrich_ip_btn.grid(row=0, column=1, padx=5)
+        self.enrich_ip_btn.config(state=tk.DISABLED)
 
         self.save_csv_btn = ttk.Button(action_frame, text="Save Parsed CSV", command=self.save_csv, bootstyle="primary")
         self.save_csv_btn.grid(row=0, column=2, padx=5)
@@ -246,6 +261,20 @@ class AuditLogParserApp:
             self.update_dashboard()
             self.update_event_log()
             messagebox.showinfo("Results", f"Filtered results for the operation: {selected_operation}.")
+
+    def filter_suspicious_operations(self):
+        if self.df is None or self.df.empty:
+            messagebox.showwarning("No Data", "No data available to filter.")
+            return
+
+        filtered_df = self.df[self.df['Operation'].isin(self.suspicious_operations)]
+        if filtered_df.empty:
+            messagebox.showinfo("No Results", "No suspicious operations found.")
+        else:
+            self.df = filtered_df
+            self.update_dashboard()
+            self.update_event_log()
+            messagebox.showinfo("Results", "Suspicious operations filtered.")
 
     def parse_and_filter(self):
         if not self.filepath:
